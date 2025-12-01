@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon API Explorer - SecureFetch Demo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e53935;
+            --secondary-color: #1565c0;
+            --success-color: #43a047;
+            --warning-color: #fb8c00;
+            --danger-color: #d32f2f;
+            --light-bg: #f5f5f5;
+            --dark-text: #333;
+            --light-text: #666;
+            --border-color: #ddd;
+            --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-text);
+            background-color: #f9f9f9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 10px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 30px;
+        }
+
+        .demo-section h2 {
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-section h2 i {
+            color: var(--primary-color);
+        }
+
+        .method-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .method-btn {
+            padding: 10px 20px;
+            background: var(--light-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .method-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .method-btn.active {
+            background: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--light-text);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: #c62828;
+        }
+
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background: #0d47a1;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background: #388e3c;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .results-container {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .results-header h3 {
+            color: var(--secondary-color);
+        }
+
+        .status-indicator {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+        }
+
+        .status-error {
+            background-color: #ffebee;
+            color: var(--danger-color);
+        }
+
+        .status-loading {
+            background-color: #fff3e0;
+            color: var(--warning-color);
+        }
+
+        .results {
+            background: var(--light-bg);
+            border-radius: 5px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .pokemon-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s;
+        }
+
+        .pokemon-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .pokemon-img {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .pokemon-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: capitalize;
+        }
+
+        .pokemon-id {
+            color: var(--light-text);
+            font-size: 0.9rem;
+        }
+
+        .error-details {
+            background: #ffebee;
+            border-left: 4px solid var(--danger-color);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .error-title {
+            color: var(--danger-color);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-right: 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .config-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-top: 30px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--secondary-color);
+        }
+
+        .tab.active {
+            color: var(--secondary-color);
+            border-bottom-color: var(--secondary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <h1>Pokémon API Explorer</h1>
+                    <p class="subtitle">Demo de la librería SecureFetch con la API de Pokémon</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-column">
+                <div class="demo-section">
+                    <h2><i class="fas fa-code"></i> Configuración de SecureFetch</h2>
+
+                    <div class="tabs">
+                        <div class="tab active" data-tab="config-basic">Básica</div>
+                        <div class="tab" data-tab="config-csrf">CSRF</div>
+                        <div class="tab" data-tab="config-retry">Reintentos</div>
+                    </div>
+
+                    <div class="tab-content active" id="config-basic">
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="baseURL">Base URL:</label>
+                                <input type="text" id="baseURL" value="https://pokeapi.co/api/v2">
+                                <small>URL base para todas las peticiones</small>
+                            </div>
+
+                            <div class="config-item">
+                                <label for="timeout">Timeout (ms):</label>
+                                <input type="number" id="timeout" value="10000">
+                                <small>Tiempo máximo de espera por petición</small>
+                            </div>
+
+                            <div class="config-item">
+                                <label for="credentials">Credentials:</label>
+                                <select id="credentials">
+                                    <option value="same-origin">same-origin</option>
+                                    <option value="include">include</option>
+                                    <option value="omit">omit</option>
+                                </select>
+                                <small>Política de credenciales para fetch</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="config-csrf">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="csrfEnabled" checked>
+                            <label for="csrfEnabled">Habilitar protección CSRF</label>
+                        </div>
+
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="csrfTokenName">Nombre del Token:</label>
+                                <input type="text" id="csrfTokenName" value="X-CSRF-Token">
+                            </div>
+
+                            <div class="config-item">
+                                <label for="csrfCookieName">Nombre de la Cookie:</label>
+                                <input type="text" id="csrfCookieName" value="csrfToken">
+                            </div>
+
+                            <div class="config-item">
+                                <label for="csrfHeaderName">Nombre del Header:</label>
+                                <input type="text" id="csrfHeaderName" value="X-CSRF-Token">
+                            </div>
+                        </div>
+
+                        <div class="info-note">
+                            <p><strong>Nota:</strong> Para esta demo, simula un token CSRF en una cookie. En una
+                                aplicación real, el backend proporcionaría este token.</p>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="config-retry">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="retryEnabled">
+                            <label for="retryEnabled">Habilitar reintentos automáticos</label>
+                        </div>
+
+                        <div class="config-grid">
+                            <div class="config-item">
+                                <label for="maxRetries">Máximo de reintentos:</label>
+                                <input type="number" id="maxRetries" value="3" min="1" max="10">
+                            </div>
+
+                            <div class="config-item">
+                                <label for="retryDelay">Delay entre reintentos (ms):</label>
+                                <input type="number" id="retryDelay" value="1000" min="100" max="10000">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button id="initSecureFetch" class="btn-secondary">
+                            <i class="fas fa-cog"></i> Inicializar SecureFetch
+                        </button>
+                        <button id="simulateCsrfToken" class="btn-success">
+                            <i class="fas fa-cookie"></i> Simular Token CSRF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h2><i class="fas fa-play-circle"></i> Ejecutar Peticiones</h2>
+
+                    <div class="method-selector">
+                        <div class="method-btn active" data-method="GET">GET</div>
+                        <div class="method-btn" data-method="POST">POST</div>
+                        <div class="method-btn" data-method="PUT">PUT</div>
+                        <div class="method-btn" data-method="DELETE">DELETE</div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="endpoint">Endpoint de la API de Pokémon:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="endpointSelect" style="flex: 1;">
+                                <option value="/pokemon?limit=20">/pokemon?limit=20 (Lista Pokémon)</option>
+                                <option value="/pokemon/pikachu">/pokemon/pikachu (Pokémon específico)</option>
+                                <option value="/type">/type (Tipos de Pokémon)</option>
+                                <option value="/ability">/ability (Habilidades)</option>
+                                <option value="/move">/move (Movimientos)</option>
+                                <option value="/berry">/berry (Bayas)</option>
+                                <option value="/location">/location (Ubicaciones)</option>
+                            </select>
+                            <button id="loadEndpoint" style="width: auto;">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="customEndpoint">O personaliza el endpoint:</label>
+                        <input type="text" id="customEndpoint" placeholder="/pokemon/charizard">
+                    </div>
+
+                    <div class="input-group" id="requestBodyGroup" style="display: none;">
+                        <label for="requestBody">Cuerpo de la petición (JSON):</label>
+                        <textarea id="requestBody" rows="4" placeholder='{"name": "Pikachu", "type": "electric"}'>
+{"simulated": "data", "for": "demo purposes"}</textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button id="executeRequest">
+                            <i class="fas fa-paper-plane"></i> Ejecutar Petición
+                        </button>
+                        <button id="cancelRequest" class="btn-secondary" style="display: none;">
+                            <i class="fas fa-stop-circle"></i> Cancelar
+                        </button>
+                        <button id="testError" class="btn-secondary">
+                            <i class="fas fa-bug"></i> Probar Error
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="demo-section">
+                    <h2><i class="fas fa-list-alt"></i> Resultados</h2>
+
+                    <div class="results-container">
+                        <div class="results-header">
+                            <h3>Respuesta de la API</h3>
+                            <div id="statusIndicator" class="status-indicator status-success" style="display: none;">
+                                Listo
+                            </div>
+                        </div>
+
+                        <div id="loadingIndicator" class="loading" style="display: none;">
+                            <div class="spinner"></div>
+                            <span>Realizando petición...</span>
+                        </div>
+
+                        <div id="results" class="results">
+                            Los resultados aparecerán aquí...
+                        </div>
+
+                        <div id="errorDetails" class="error-details" style="display: none;">
+                            <div class="error-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span id="errorTitle">Error</span>
+                            </div>
+                            <div id="errorMessage"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-section">
+                    <h2><i class="fas fa-dragon"></i> Pokémon Obtenidos</h2>
+
+                    <div id="pokemonDisplay" class="pokemon-grid">
+                        <!-- Los Pokémon se mostrarán aquí -->
+                    </div>
+
+                    <div id="noPokemon" style="text-align: center; padding: 20px; color: var(--light-text);">
+                        <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>Ejecuta una petición GET a /pokemon para ver los Pokémon aquí</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-section">
+            <h2><i class="fas fa-info-circle"></i> Información de la Demo</h2>
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div>
+                    <h3 style="color: var(--secondary-color); margin-bottom: 10px;">Características de SecureFetch</h3>
+                    <ul style="padding-left: 20px;">
+                        <li>Protección CSRF automática</li>
+                        <li>Control de timeout configurable</li>
+                        <li>Manejo de errores estructurado</li>
+                        <li>Reintentos automáticos</li>
+                        <li>Validación de respuestas</li>
+                        <li>Métodos HTTP simplificados</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: var(--secondary-color); margin-bottom: 10px;">API de Pokémon</h3>
+                    <ul style="padding-left: 20px;">
+                        <li>API pública y gratuita</li>
+                        <li>No requiere autenticación</li>
+                        <li>Perfecta para pruebas</li>
+                        <li>Rica en datos y recursos</li>
+                        <li>Documentación completa</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: var(--secondary-color); margin-bottom: 10px;">Ejemplos de endpoints</h3>
+                    <ul style="padding-left: 20px;">
+                        <li><code>/pokemon</code> - Lista de Pokémon</li>
+                        <li><code>/pokemon/{id}</code> - Pokémon específico</li>
+                        <li><code>/type</code> - Tipos de Pokémon</li>
+                        <li><code>/ability</code> - Habilidades</li>
+                        <li><code>/move</code> - Movimientos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Demo creada con la librería SecureFetch • Usando la <a href="https://pokeapi.co/"
+                    target="_blank">PokéAPI</a> •
+                <a href="https://github.com" target="_blank">Código fuente disponible en GitHub</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">Esta es una demostración educativa. La API de Pokémon es
+                propiedad de sus respectivos dueños.</p>
+        </footer>
+    </div>
+
+    <!-- Incluir la librería SecureFetch -->
+    <script src="fetch.js"></script>
+    <script>
+        // Aquí va el código de la librería SecureFetch que proporcionamos anteriormente
+        // Por brevedad, solo incluimos la parte esencial
+        class SecureFetch {
+            constructor(config = {}) {
+                this.config = {
+                    baseURL: config.baseURL || '',
+                    timeout: config.timeout || 10000,
+                    credentials: config.credentials || 'same-origin',
+                    defaultHeaders: {
+                        'Content-Type': 'application/json',
+                        'X-Content-Type-Options': 'nosniff',
+                        ...config.defaultHeaders
+                    },
+                    csrf: {
+                        enabled: config.csrf?.enabled !== false,
+                        tokenName: config.csrf?.tokenName || 'X-CSRF-Token',
+                        cookieName: config.csrf?.cookieName || 'csrfToken',
+                        headerName: config.csrf?.headerName || 'X-CSRF-Token'
+                    },
+                    retry: {
+                        enabled: config.retry?.enabled || false,
+                        maxRetries: config.retry?.maxRetries || 3,
+                        retryDelay: config.retry?.retryDelay || 1000
+                    }
+                };
+
+                this.errorTypes = {
+                    NETWORK_ERROR: 'NETWORK_ERROR',
+                    TIMEOUT_ERROR: 'TIMEOUT_ERROR',
+                    HTTP_ERROR: 'HTTP_ERROR',
+                    ABORT_ERROR: 'ABORT_ERROR',
+                    CSRF_ERROR: 'CSRF_ERROR',
+                    VALIDATION_ERROR: 'VALIDATION_ERROR'
+                };
+
+                this.currentController = null;
+            }
+
+            getCsrfToken() {
+                if (!this.config.csrf.enabled) return null;
+
+                const name = this.config.csrf.cookieName + '=';
+                const decodedCookie = decodeURIComponent(document.cookie);
+                const ca = decodedCookie.split(';');
+
+                for (let i = 0; i < ca.length; i++) {
+                    let c = ca[i];
+                    while (c.charAt(0) === ' ') {
+                        c = c.substring(1);
+                    }
+                    if (c.indexOf(name) === 0) {
+                        return c.substring(name.length, c.length);
+                    }
+                }
+                return null;
+            }
+
+            createError(message, type = this.errorTypes.NETWORK_ERROR, details = null) {
+                const error = new Error(message);
+                error.name = 'SecureFetchError';
+                error.type = type;
+                error.details = details;
+                error.timestamp = new Date().toISOString();
+                return error;
+            }
+
+            async retryFetch(fetchFn, retriesLeft) {
+                try {
+                    return await fetchFn();
+                } catch (error) {
+                    if (retriesLeft > 0 &&
+                        (error.type === this.errorTypes.NETWORK_ERROR ||
+                            error.type === this.errorTypes.TIMEOUT_ERROR)) {
+
+                        await new Promise(resolve =>
+                            setTimeout(resolve, this.config.retry.retryDelay)
+                        );
+
+                        return this.retryFetch(fetchFn, retriesLeft - 1);
+                    }
+                    throw error;
+                }
+            }
+
+            async fetch(url, options = {}) {
+                const fullUrl = this.config.baseURL ?
+                    `${this.config.baseURL}${url}` : url;
+
+                const defaultOptions = {
+                    credentials: this.config.credentials,
+                    headers: {
+                        ...this.config.defaultHeaders
+                    },
+                    signal: null
+                };
+
+                if (this.config.csrf.enabled && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method
+                    ?.toUpperCase() || '')) {
+                    const csrfToken = this.getCsrfToken();
+                    if (csrfToken) {
+                        defaultOptions.headers[this.config.csrf.headerName] = csrfToken;
+                    } else {
+                        console.warn('Token CSRF no encontrado.');
+                    }
+                }
+
+                const headers = {
+                    ...defaultOptions.headers,
+                    ...options.headers
+                };
+
+                const fetchOptions = {
+                    ...defaultOptions,
+                    ...options,
+                    headers
+                };
+
+                this.currentController = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    this.currentController.abort();
+                }, options.timeout || this.config.timeout);
+
+                fetchOptions.signal = this.currentController.signal;
+
+                const fetchFn = async () => {
+                    try {
+                        const response = await fetch(fullUrl, fetchOptions);
+                        clearTimeout(timeoutId);
+
+                        if (!response.ok) {
+                            let errorDetails = null;
+
+                            try {
+                                const errorData = await response.clone().json();
+                                errorDetails = errorData;
+                            } catch {
+                                try {
+                                    const errorText = await response.clone().text();
+                                    errorDetails = errorText;
+                                } catch {
+                                    errorDetails = null;
+                                }
+                            }
+
+                            throw this.createError(
+                                `Error HTTP ${response.status}: ${response.statusText}`,
+                                this.errorTypes.HTTP_ERROR, {
+                                    status: response.status,
+                                    statusText: response.statusText,
+                                    url: fullUrl,
+                                    details: errorDetails
+                                }
+                            );
+                        }
+
+                        return response;
+
+                    } catch (error) {
+                        clearTimeout(timeoutId);
+
+                        if (error.name === 'AbortError') {
+                            throw this.createError(
+                                `Timeout: La petición excedió el tiempo límite de ${options.timeout || this.config.timeout}ms`,
+                                this.errorTypes.TIMEOUT_ERROR, {
+                                    url: fullUrl
+                                }
+                            );
+                        } else if (error.name === 'SecureFetchError') {
+                            throw error;
+                        } else {
+                            throw this.createError(
+                                `Error de red: ${error.message}`,
+                                this.errorTypes.NETWORK_ERROR, {
+                                    url: fullUrl,
+                                    originalError: error.message
+                                }
+                            );
+                        }
+                    }
+                };
+
+                if (this.config.retry.enabled) {
+                    return this.retryFetch(fetchFn, this.config.retry.maxRetries);
+                }
+
+                return fetchFn();
+            }
+
+            cancelRequest() {
+                if (this.currentController) {
+                    this.currentController.abort();
+                    this.currentController = null;
+                }
+            }
+
+            async get(url, options = {}) {
+                return this.fetch(url, {
+                    ...options,
+                    method: 'GET'
+                });
+            }
+
+            async post(url, data = {}, options = {}) {
+                return this.fetch(url, {
+                    ...options,
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+
+            async put(url, data = {}, options = {}) {
+                return this.fetch(url, {
+                    ...options,
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+            }
+
+            async delete(url, options = {}) {
+                return this.fetch(url, {
+                    ...options,
+                    method: 'DELETE'
+                });
+            }
+
+            async processJsonResponse(response) {
+                try {
+                    const data = await response.json();
+                    return {
+                        success: true,
+                        data,
+                        status: response.status,
+                        headers: Object.fromEntries(response.headers.entries())
+                    };
+                } catch (error) {
+                    throw this.createError(
+                        'Error al parsear la respuesta JSON',
+                        this.errorTypes.VALIDATION_ERROR, {
+                            originalError: error.message
+                        }
+                    );
+                }
+            }
+        }
+
+        // Hacer disponible globalmente
+        window.SecureFetch = SecureFetch;
+    </script>
+
+    <script>
+        // Aplicación de demostración
+        document.addEventListener('DOMContentLoaded', function() {
+            let secureFetchInstance = null;
+            let currentRequest = null;
+
+            // Referencias a elementos del DOM
+            const initBtn = document.getElementById('initSecureFetch');
+            const simulateCsrfBtn = document.getElementById('simulateCsrfToken');
+            const executeBtn = document.getElementById('executeRequest');
+            const cancelBtn = document.getElementById('cancelRequest');
+            const testErrorBtn = document.getElementById('testError');
+            const loadEndpointBtn = document.getElementById('loadEndpoint');
+            const methodBtns = document.querySelectorAll('.method-btn');
+            const tabs = document.querySelectorAll('.tab');
+            const endpointSelect = document.getElementById('endpointSelect');
+            const customEndpoint = document.getElementById('customEndpoint');
+            const requestBodyGroup = document.getElementById('requestBodyGroup');
+            const requestBody = document.getElementById('requestBody');
+            const resultsDiv = document.getElementById('results');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const statusIndicator = document.getElementById('statusIndicator');
+            const errorDetails = document.getElementById('errorDetails');
+            const errorTitle = document.getElementById('errorTitle');
+            const errorMessage = document.getElementById('errorMessage');
+            const pokemonDisplay = document.getElementById('pokemonDisplay');
+            const noPokemon = document.getElementById('noPokemon');
+
+            // Variables de estado
+            let currentMethod = 'GET';
+
+            // Inicializar eventos
+            function initEvents() {
+                // Tabs de configuración
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const tabId = this.getAttribute('data-tab');
+
+                        // Remover clase active de todos los tabs
+                        tabs.forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove(
+                            'active'));
+
+                        // Activar tab seleccionado
+                        this.classList.add('active');
+                        document.getElementById(tabId).classList.add('active');
+                    });
+                });
+
+                // Selector de método HTTP
+                methodBtns.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        methodBtns.forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        currentMethod = this.getAttribute('data-method');
+
+                        // Mostrar/ocultar body para métodos que lo requieren
+                        if (currentMethod === 'POST' || currentMethod === 'PUT') {
+                            requestBodyGroup.style.display = 'block';
+                        } else {
+                            requestBodyGroup.style.display = 'none';
+                        }
+                    });
+                });
+
+                // Cargar endpoint seleccionado
+                loadEndpointBtn.addEventListener('click', function() {
+                    customEndpoint.value = endpointSelect.value;
+                });
+
+                // Inicializar SecureFetch
+                initBtn.addEventListener('click', initSecureFetch);
+
+                // Simular token CSRF
+                simulateCsrfBtn.addEventListener('click', function() {
+                    // Crear una cookie CSRF simulada
+                    const token = 'simulated-csrf-token-' + Date.now();
+                    document.cookie = `csrfToken=${token}; path=/; max-age=3600`;
+                    document.cookie = `XSRF-TOKEN=${token}; path=/; max-age=3600`;
+
+                    updateStatus('Token CSRF simulado creado', 'success');
+                    showNotification('Token CSRF simulado creado exitosamente', 'success');
+                });
+
+                // Ejecutar petición
+                executeBtn.addEventListener('click', executeRequest);
+
+                // Cancelar petición
+                cancelBtn.addEventListener('click', function() {
+                    if (secureFetchInstance && secureFetchInstance.currentController) {
+                        secureFetchInstance.cancelRequest();
+                        updateStatus('Petición cancelada por el usuario', 'error');
+                        showNotification('Petición cancelada exitosamente', 'warning');
+                        cancelBtn.style.display = 'none';
+                        executeBtn.disabled = false;
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+
+                // Probar manejo de errores
+                testErrorBtn.addEventListener('click', function() {
+                    // Probar con un endpoint que no existe
+                    customEndpoint.value = '/pokemon/este-pokemon-no-existe-999999';
+                    currentMethod = 'GET';
+
+                    methodBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelector('.method-btn[data-method="GET"]').classList.add('active');
+                    requestBodyGroup.style.display = 'none';
+
+                    executeRequest();
+                });
+
+                // Cargar endpoint al seleccionar
+                endpointSelect.addEventListener('change', function() {
+                    customEndpoint.value = this.value;
+                });
+            }
+
+            // Inicializar SecureFetch con la configuración
+            function initSecureFetch() {
+                const config = {
+                    baseURL: document.getElementById('baseURL').value,
+                    timeout: parseInt(document.getElementById('timeout').value),
+                    credentials: document.getElementById('credentials').value,
+                    csrf: {
+                        enabled: document.getElementById('csrfEnabled').checked,
+                        tokenName: document.getElementById('csrfTokenName').value,
+                        cookieName: document.getElementById('csrfCookieName').value,
+                        headerName: document.getElementById('csrfHeaderName').value
+                    },
+                    retry: {
+                        enabled: document.getElementById('retryEnabled').checked,
+                        maxRetries: parseInt(document.getElementById('maxRetries').value),
+                        retryDelay: parseInt(document.getElementById('retryDelay').value)
+                    }
+                };
+
+                secureFetchInstance = new SecureFetch(config);
+
+                updateStatus('SecureFetch inicializado correctamente', 'success');
+                showNotification('Configuración aplicada exitosamente', 'success');
+
+                console.log('SecureFetch configurado:', config);
+            }
+
+            // Ejecutar una petición a la API
+            async function executeRequest() {
+                if (!secureFetchInstance) {
+                    showNotification('Primero inicializa SecureFetch', 'error');
+                    return;
+                }
+
+                const endpoint = customEndpoint.value.trim();
+                if (!endpoint) {
+                    showNotification('Ingresa un endpoint válido', 'error');
+                    return;
+                }
+
+                // Mostrar indicador de carga
+                loadingIndicator.style.display = 'flex';
+                executeBtn.disabled = true;
+                cancelBtn.style.display = 'inline-flex';
+                errorDetails.style.display = 'none';
+                statusIndicator.style.display = 'none';
+                resultsDiv.textContent = 'Realizando petición...';
+
+                updateStatus('Realizando petición...', 'loading');
+
+                try {
+                    let response;
+                    const options = {};
+
+                    // Configurar body si es necesario
+                    if ((currentMethod === 'POST' || currentMethod === 'PUT') && requestBody.value.trim()) {
+                        try {
+                            options.body = requestBody.value;
+                        } catch (e) {
+                            showNotification('JSON inválido en el cuerpo de la petición', 'error');
+                            return;
+                        }
+                    }
+
+                    // Ejecutar según el método
+                    switch (currentMethod) {
+                        case 'GET':
+                            response = await secureFetchInstance.get(endpoint, options);
+                            break;
+                        case 'POST':
+                            response = await secureFetchInstance.post(endpoint, JSON.parse(requestBody.value),
+                                options);
+                            break;
+                        case 'PUT':
+                            response = await secureFetchInstance.put(endpoint, JSON.parse(requestBody.value),
+                                options);
+                            break;
+                        case 'DELETE':
+                            response = await secureFetchInstance.delete(endpoint, options);
+                            break;
+                    }
+
+                    // Procesar respuesta
+                    const result = await secureFetchInstance.processJsonResponse(response);
+
+                    // Mostrar resultados
+                    displayResults(result);
+
+                    // Extraer y mostrar Pokémon si corresponde
+                    if (endpoint.includes('/pokemon') && !endpoint.includes('/pokemon/')) {
+                        extractAndDisplayPokemon(result.data);
+                    }
+
+                    updateStatus(`Petición exitosa - ${response.status} ${response.statusText}`, 'success');
+                    showNotification('Petición completada exitosamente', 'success');
+
+                } catch (error) {
+                    displayError(error);
+                    updateStatus(`Error: ${error.type}`, 'error');
+                    showNotification(`Error: ${error.message.substring(0, 50)}...`, 'error');
+                } finally {
+                    // Restaurar UI
+                    loadingIndicator.style.display = 'none';
+                    executeBtn.disabled = false;
+                    cancelBtn.style.display = 'none';
+                }
+            }
+
+            // Mostrar resultados en el panel
+            function displayResults(result) {
+                try {
+                    // Formatear JSON para mostrarlo bonito
+                    const formattedJson = JSON.stringify(result.data, null, 2);
+
+                    // Limitar la salida si es muy grande
+                    if (formattedJson.length > 10000) {
+                        resultsDiv.textContent = formattedJson.substring(0, 10000) +
+                            '\n\n... (respuesta truncada, demasiado grande para mostrar)';
+                    } else {
+                        resultsDiv.textContent = formattedJson;
+                    }
+
+                    // Mostrar información de la respuesta
+                    statusIndicator.textContent = `✅ ${result.status} - Éxito`;
+                    statusIndicator.className = 'status-indicator status-success';
+                    statusIndicator.style.display = 'block';
+
+                } catch (e) {
+                    resultsDiv.textContent = 'Error al formatear la respuesta: ' + e.message;
+                }
+            }
+
+            // Mostrar error en el panel
+            function displayError(error) {
+                let errorText = `Tipo: ${error.type}\n`;
+                errorText += `Mensaje: ${error.message}\n`;
+                errorText += `Timestamp: ${error.timestamp}\n`;
+
+                if (error.details) {
+                    errorText += `\nDetalles:\n${JSON.stringify(error.details, null, 2)}`;
+                }
+
+                resultsDiv.textContent = errorText;
+
+                // Mostrar panel de error
+                errorTitle.textContent = `Error ${error.type}`;
+                errorMessage.textContent = error.message;
+                errorDetails.style.display = 'block';
+
+                statusIndicator.textContent = `❌ ${error.type}`;
+                statusIndicator.className = 'status-indicator status-error';
+                statusIndicator.style.display = 'block';
+            }
+
+            // Extraer y mostrar Pokémon de la respuesta
+            function extractAndDisplayPokemon(data) {
+                // Limpiar display anterior
+                pokemonDisplay.innerHTML = '';
+                noPokemon.style.display = 'none';
+
+                let pokemonList = [];
+
+                // Verificar estructura de respuesta
+                if (data.results && Array.isArray(data.results)) {
+                    // Es una lista de Pokémon
+                    pokemonList = data.results.slice(0, 12); // Limitar a 12
+                } else if (data.pokemon && Array.isArray(data.pokemon)) {
+                    // Estructura alternativa (para /type/{id})
+                    pokemonList = data.pokemon.slice(0, 12).map(p => p.pokemon);
+                } else if (data.name) {
+                    // Es un solo Pokémon
+                    pokemonList = [data];
+                }
+
+                if (pokemonList.length === 0) {
+                    noPokemon.style.display = 'block';
+                    return;
+                }
+
+                // Crear tarjetas para cada Pokémon
+                pokemonList.forEach((pokemon, index) => {
+                    const pokemonCard = document.createElement('div');
+                    pokemonCard.className = 'pokemon-card';
+
+                    // Extraer ID de la URL si está disponible
+                    let pokemonId = index + 1;
+                    if (pokemon.url) {
+                        const matches = pokemon.url.match(/\/(\d+)\//);
+                        if (matches) pokemonId = matches[1];
+                    }
+
+                    // Nombre del Pokémon
+                    const pokemonName = pokemon.name || 'Desconocido';
+
+                    // Crear contenido de la tarjeta
+                    pokemonCard.innerHTML = `
+                        <div class="pokemon-img">
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png" 
+                                 alt="${pokemonName}" 
+                                 onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png'"
+                                 style="width: 80px; height: 80px;">
+                        </div>
+                        <div class="pokemon-name">${pokemonName}</div>
+                        <div class="pokemon-id">#${pokemonId}</div>
+                    `;
+
+                    // Añadir evento para obtener detalles
+                    pokemonCard.addEventListener('click', function() {
+                        customEndpoint.value = `/pokemon/${pokemonName}`;
+                        currentMethod = 'GET';
+                        methodBtns.forEach(b => b.classList.remove('active'));
+                        document.querySelector('.method-btn[data-method="GET"]').classList.add(
+                            'active');
+                        requestBodyGroup.style.display = 'none';
+                        executeRequest();
+                    });
+
+                    pokemonDisplay.appendChild(pokemonCard);
+                });
+            }
+
+            // Actualizar indicador de estado
+            function updateStatus(message, type) {
+                statusIndicator.textContent = message;
+                statusIndicator.className = 'status-indicator';
+
+                if (type === 'success') {
+                    statusIndicator.classList.add('status-success');
+                } else if (type === 'error') {
+                    statusIndicator.classList.add('status-error');
+                } else if (type === 'loading') {
+                    statusIndicator.classList.add('status-loading');
+                }
+
+                statusIndicator.style.display = 'block';
+            }
+
+            // Mostrar notificación toast
+            function showNotification(message, type) {
+                // Crear elemento de notificación
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    border-radius: 5px;
+                    color: white;
+                    font-weight: 600;
+                    z-index: 1000;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    animation: slideIn 0.3s ease-out;
+                `;
+
+                if (type === 'success') {
+                    notification.style.backgroundColor = 'var(--success-color)';
+                } else if (type === 'error') {
+                    notification.style.backgroundColor = 'var(--danger-color)';
+                } else if (type === 'warning') {
+                    notification.style.backgroundColor = 'var(--warning-color)';
+                } else {
+                    notification.style.backgroundColor = 'var(--secondary-color)';
+                }
+
+                document.body.appendChild(notification);
+
+                // Remover después de 3 segundos
+                setTimeout(() => {
+                    notification.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+
+                // Añadir estilos de animación si no existen
+                if (!document.getElementById('notification-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'notification-styles';
+                    style.textContent = `
+                        @keyframes slideIn {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        @keyframes slideOut {
+                            from { transform: translateX(0); opacity: 1; }
+                            to { transform: translateX(100%); opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
+
+            // Inicializar la aplicación
+            function initApp() {
+                initEvents();
+
+                // Inicializar SecureFetch con valores por defecto
+                initSecureFetch();
+
+                // Cargar endpoint por defecto
+                customEndpoint.value = endpointSelect.value;
+
+                // Mostrar mensaje de bienvenida
+                setTimeout(() => {
+                    showNotification('Pokémon API Explorer listo. ¡Inicia una petición!', 'success');
+                }, 500);
+            }
+
+            // Iniciar la aplicación
+            initApp();
+        });
+    </script>
+</body>
+
+</html>
